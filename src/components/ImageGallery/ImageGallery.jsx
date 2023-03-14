@@ -29,16 +29,16 @@ class ImageGallery extends Component {
         if(prevProps.searchValue !== searchValue || prevState.page !== page) {
             this.setState({ loading: true, searchResult: null });
 
-            fetchGallery(searchValue, page).
-            then(photos => {
+            fetchGallery(searchValue, page)
+            .then(photos => {
                 if(photos.hits.length === 0) {
                     return Promise.reject(
                         new Error('Зображень за вашим пошуком не знайдено')
                     );
                 };
     
-                this.setState({ searchResult: [...prevState.searchResult, ... photos.hits] });
-                this.setState({ total: photos.total });
+                this.setState({ searchResult: [...prevState.searchResult, ...photos.hits] });
+                this.setState({ total: potos.total });
             })
             .catch(error => this.setState({ error }))
             .finally(this.setState({ loading: false }));
