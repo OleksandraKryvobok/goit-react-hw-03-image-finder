@@ -38,7 +38,7 @@ class ImageGallery extends Component {
                 };
     
                 this.setState({ searchResult: [...prevState.searchResult, ...photos.hits] });
-                this.setState({ total: potos.total });
+                this.setState({ total: photos.total });
             })
             .catch(error => this.setState({ error }))
             .finally(this.setState({ loading: false }));
