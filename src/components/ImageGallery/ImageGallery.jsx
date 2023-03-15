@@ -13,7 +13,7 @@ class ImageGallery extends Component {
     state = {
         page: 1,
         searchResult: [],
-        total: null,
+        total: 0,
         error: null,
         loading: false,
     };
@@ -21,13 +21,13 @@ class ImageGallery extends Component {
     componentDidUpdate(prevProps, prevState) {
         const { page } = this.state;
         const { searchValue } = this.props;
-
-        if(prevProps.searchValue !== searchValue) {
-            prevState.searchResult = [];
-        }
         
         if(prevProps.searchValue !== searchValue || prevState.page !== page) {
-            this.setState({ loading: true, searchResult: null });
+            this.setState({ loading: true });
+
+            if(prevProps.searchValue !== searchValue) {
+                this.setState({ searchResult: [] });
+            }
 
             fetchGallery(searchValue, page)
             .then(photos => {
@@ -36,12 +36,25 @@ class ImageGallery extends Component {
                         new Error('Зображень за вашим пошуком не знайдено')
                     );
                 };
-    
-                this.setState({ searchResult: [...prevState.searchResult, ...photos.hits] });
-                this.setState({ total: photos.total });
+
+                this.setState({
+                    total: photos.total,
+                    error: null
+                })
+
+                if(prevProps.searchValue !== searchValue) {
+                    this.setState({ 
+                        searchResult: photos.hits
+                    });
+                } else {
+                    this.setState({ 
+                        searchResult: [...prevState.searchResult, ...photos.hits]
+                    });
+                }
+
             })
             .catch(error => this.setState({ error }))
-            .finally(this.setState({ loading: false }));
+            .finally(() => this.setState({ loading: false }));
         };
     };
 
@@ -62,15 +75,14 @@ class ImageGallery extends Component {
                 {error && <ErrorMessage>{error.message}</ErrorMessage>}
                 
                 <List toggleModal={toggleModal} >
-                    {searchResult !== null && 
-                        searchResult.map(img => {
+                    {searchResult.map(img => {
                             return (
                                 <ImageGalleryItem key={img.id} imageInfo={img} toggleModal={toggleModal} />
                             )
                         })
                     }
                 </List>
-                {searchResult && searchResult.length < total && <Button onBtnClick={handleBtnClick} />}
+                {searchResult && searchResult.length < total && !error && <Button onBtnClick={handleBtnClick} />}
             </>
             
         );
