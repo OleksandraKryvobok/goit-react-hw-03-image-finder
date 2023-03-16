@@ -18,17 +18,36 @@ class ImageGallery extends Component {
         loading: false,
     };
 
+    
+
     componentDidUpdate(prevProps, prevState) {
         const { page } = this.state;
         const { searchValue } = this.props;
         
-        if(prevProps.searchValue !== searchValue || prevState.page !== page) {
-            this.setState({ loading: true });
+        if(prevProps.searchValue !== searchValue) {
+            this.setState({ 
+                loading: true,
+                page: 1,
+                searchResult: [],
+            });
 
-            if(prevProps.searchValue !== searchValue) {
-                this.setState({ searchResult: [] });
-            }
+            fetchGallery(searchValue, 1)
+            .then(photos => {
+                if(photos.hits.length === 0) {
+                    return Promise.reject(
+                        new Error('Зображень за вашим пошуком не знайдено')
+                    );
+                };
 
+                this.setState({
+                    searchResult: photos.hits,
+                    total: photos.total,
+                    error: null
+                });
+            })
+            .catch(error => this.setState({ error }))
+            .finally(() => this.setState({ loading: false }));
+        } else if (prevState.page !== page && page > 1) {
             fetchGallery(searchValue, page)
             .then(photos => {
                 if(photos.hits.length === 0) {
@@ -38,24 +57,14 @@ class ImageGallery extends Component {
                 };
 
                 this.setState({
+                    searchResult: [...prevState.searchResult, ...photos.hits],
                     total: photos.total,
                     error: null
-                })
-
-                if(prevProps.searchValue !== searchValue) {
-                    this.setState({ 
-                        searchResult: photos.hits
-                    });
-                } else {
-                    this.setState({ 
-                        searchResult: [...prevState.searchResult, ...photos.hits]
-                    });
-                }
-
+                });
             })
             .catch(error => this.setState({ error }))
             .finally(() => this.setState({ loading: false }));
-        };
+        }
     };
 
     handleBtnClick = () => {
